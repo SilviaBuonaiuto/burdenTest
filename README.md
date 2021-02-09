@@ -23,7 +23,7 @@ use vcftools (https://vcftools.github.io/index.html)
 vcftools --gzvcf allsamples.$chr.vcf.gz --out $sampleid.$chr --positions positionsList.txt --min-meanDP 10 --counts --indv $sampleid  
 ```
 #### 3) Reformat allele counts files to consider only alternate allele counts
-use the script altCounts.py
+use the script [altCounts.py](https://github.com/SilviaBuonaiuto/burdenTest/blob/main/script/altCounts.py)
 ```
 python3 altCounts.py -i $sampleid.$chr.frq.count -id $id > $id.$chr.counts
 
