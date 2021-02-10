@@ -1,4 +1,5 @@
 library(tidyverse)
+library(ggrepel)
 
 args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
