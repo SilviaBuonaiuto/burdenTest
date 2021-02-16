@@ -65,5 +65,5 @@ df<-df[order(df$logpcorrect),]
 df$log10pexp<-sort(-log10(expPX))
 
 ####plot after correction
-correctDominant<-ggplot(df,aes(log10pexp, logpcorrect)) + geom_point() + geom_text_repel(data = subset(myd,log10cpdom >=4), aes(label = SYMBOL)) + geom_abline(intercept = 0, slope = 1)
+correctDominant<-ggplot(df,aes(log10pexp, logpcorrect)) + geom_point()  + geom_abline(intercept = 0, slope = 1)
 ggsave("rareVariants_dominant_correct.png", plot = correctDominant, width = 6, height = 6 )
