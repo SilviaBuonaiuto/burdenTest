@@ -34,6 +34,7 @@ myd<- merge(controlAll, caseAll, by = "SYMBOL")
 ######### pvalues recessive and dominant
 myd<- myd %>%  rowwise() %>% mutate(cpdom=chisq.test(matrix(c(ca1Het, numberCases-ca1Het, co1Het, numberControls-co1Het), ncol=2, nrow=2))$p.value, cstatdom=chisq.test(matrix(c(ca1Het, numberCases-ca1Het, co1Het, numberControls-co1Het), ncol=2, nrow=2))$statistic, cprec=chisq.test(matrix(c(ca1Hom, numberCases-ca1Hom, co1Hom, numberControls-co1Hom), ncol=2, nrow=2))$p.value, cstatrec=chisq.test(matrix(c(ca1Hom, numberCases-ca1Hom, co1Hom, numberControls-co1Hom), ncol=2, nrow=2))$statistic, log10cpdom=-log10(cpdom),  log10cprec=-log10(cprec) )
 
+
 ######## calulate expected pval under chisquare distribution with 1 d.f.
 numberGenes = nrow(myd)
 samplingXsquare<-rchisq(numberGenes,df=1)
@@ -43,6 +44,7 @@ myd$log10cpdomexp<-sort(-log10(expPX))
 myd<-myd[order(myd$log10cprec),]
 myd$log10cprecexp<-sort(-log10(expPX))
 
+myd %>% write.table("burden_table.tsv", sep = "\t", quote = F, col.names =T, row.names=F)
 ###plot
 pdominant<-ggplot(myd,aes(log10cpdomexp, log10cpdom)) + geom_point() + geom_text_repel(data = subset(myd,log10cpdom >=4), aes(label = SYMBOL)) + geom_abline(intercept = 0, slope = 1)
 ggsave("rareVariants_dominant.png", plot = pdominant, width = 6, height = 6 )
