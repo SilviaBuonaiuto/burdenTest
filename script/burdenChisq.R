@@ -52,11 +52,11 @@ ggsave("rareVariants_dominant.png", plot = pdominant, width = 6, height = 6 )
 precessive<-ggplot(myd,aes(log10cprecexp, log10cprec)) + geom_point() + geom_abline(intercept = 0, slope = 1)
 ggsave("rareVariants_recessive.png", plot = precessive, width = 6, height = 6 )
 ########  calculate lambda
+numberGenes = nrow(myd)
+samplingXsquare<-rchisq(numberGenes,df=1)
 lambdaX=median(myd$cstatdom, na.rm=T)/median(samplingXsquare)
 
 #######correct
-numberGenes = nrow(myd)
-samplingXsquare<-rchisq(numberGenes,df=1)
 expPX<-pchisq(samplingXsquare, df=1)
 
 df <- data.frame(pcorrect = myd$cpdom/lambdaX)
