@@ -55,6 +55,10 @@ ggsave("rareVariants_recessive.png", plot = precessive, width = 6, height = 6 )
 lambdaX=median(myd$cstatdom, na.rm=T)/median(samplingXsquare)
 
 #######correct
+numberGenes = nrow(myd)
+samplingXsquare<-rchisq(numberGenes,df=1)
+expPX<-pchisq(samplingXsquare, df=1)
+
 df <- data.frame(pcorrect = myd$cpdom/lambdaX)
 df$logpcorrect <- -log10(df$pcorrect)
 df<-df[order(df$logpcorrect),]
