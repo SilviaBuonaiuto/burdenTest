@@ -1,67 +1,64 @@
 # burdenTest
 
-#### 0) Pre-processing 
-Starting from the vcf file there are some pre-processing steps : 1) normalization of the variants , 2) decomposition of biallelic block substitutions into its constituent SNPs , 3) merge vcf by individuals , 4)annotation of variants and 4) creating a list of individuals
+#### Required tools
+vt (https://genome.sph.umich.edu/wiki/Vt)
+bcftools (http://samtools.github.io/bcftools/bcftools.html)
+VEP (https://www.ensembl.org/info/docs/tools/vep/index.html)
+vcftools (https://vcftools.github.io/index.html)
+
+#### 0) Pre-processing. 
+1) normalization of the variants in vcf. 
+2) decomposition of biallelic block substitutions into its constituent SNPs.   
+3) merge vcf by individuals.  
+4) annotation of variants. 
+5) creating a list of individuals. 
 ```
-1) and 2) use vt (https://genome.sph.umich.edu/wiki/Vt) normalize and vt decompose
-3) use bcftools merge (http://samtools.github.io/bcftools/bcftools.html)
-4) annotate with VEP (https://www.ensembl.org/info/docs/tools/vep/index.html)
-5) create a list of individuals from the vcf using  bcftools query -l
+1)vt normalize -n \
+-r reference_genome.fa \
+$sample.$chr.vcf.gz > $sample.$chr.normalized.vcf
+
+2)vt decompose_blocksub $sample.$chr.normalized.vcf.gz > $sample.$chr.deco.vcf
+
+3)bcftools merge -O z \
+-o allsamples.$chr.vcf.gz \
+sample1.$chr.deco.vcf.gz sample2.$chr.deco.vcf.gz ... sampleN.$chr.deco.vcf.gz
+
+4)VEP
+
+5)bcftools query -l \
+allsamples.$chr.vcf.gz > samples.txt
 ```
 #### 1) Creating a list of SNPs 
-Selecting possibly damaging and rare (MAF < 0.01) variants (qualifying variants) from the vcf file and create a tab separate list of chromosomes and positions as
+From the annotated VCF select qualifying variants (possibly damaging and rare (MAF < 0.01)) and  write it as a bed file (chromosome and position into tab separate file)
+
+#### 2) Retrieve per-individual allele counts for all the variants with DP > 10 in the list
 ```
-chr1  122746558
-chr3  237485948
-chr14 9473625647
-chr19 753454658
-```
-#### 2) Retrieve per-individual allele counts for all the variants in the list with DP > 10
-Using SNPs and individual lists it is possible to retrieve allele counts for all the qualifying variants 
-```
-use vcftools (https://vcftools.github.io/index.html)
-vcftools --gzvcf allsamples.$chr.vcf.gz --out $sampleid.$chr --positions positionsList.txt --min-meanDP 10 --counts --indv $sampleid  
+vcftools --gzvcf allsamples.$chr.vcf.gz /
+--out $sampleid.$chr /
+--positions qualifying_variants.bed /
+--min-meanDP 10 /
+--counts /
+--indv $sampleid  
 ```
 #### 3) Reformat allele counts files to consider only alternate allele counts
-use the script [altCounts.py](https://github.com/SilviaBuonaiuto/burdenTest/blob/main/script/altCounts.py)
+run script [altCounts.py](https://github.com/SilviaBuonaiuto/burdenTest/blob/main/script/altCounts.py)
 ```
-python3 altCounts.py -i $sampleid.$chr.frq.count -id $id > $id.$chr.counts
+python3 altCounts.py -i $sampleid.$chr.frq.count /
+-id $id > $sampleid.$chr.counts
+```
+#### 4) Merge counts of all samples and chromosomes in one file (https://github.com/SilviaBuonaiuto/burdenTest/blob/main/test/qualifying_variants.idv.counts)
 
--i path to input file (.count file from previous step)
--id sample id
-```
-The script produces a file (.counts) with variants positions and alternate allele, list of individuals and their counts
-```
-key ID  ALTcount
-chr1:122746558:/A id1 1
-chr1:122746558:/A id2 2
-chr1:122746558:/A id3 1
-chr14:9473625647:/G id2 1
-chr14:9473625647:/G id4 1
-chr19:753454658:/T  id1 2
-chr19:753454658:/T  id3 2
-chr19:753454658:/T  id4 1
-```
-#### 4) Merge all alternate allele count files by chromosomes and samples
-Create two files one containig all allele counts for all the case samples and another one for all control samples (casesCountfile.tsv and controlCountfile.tsv) 
+#### 5) Create file containing variants and counts for control samples
+As the previous step, create a file with variants and counts for control samples (the ones not carrying qualifying variants)(https://github.com/SilviaBuonaiuto/burdenTest/blob/main/test/control_samples.counts) 
 
-#### 5) Create a list of all variants and genes
-The list has to be a tab separated file (genesfile.tsv)
-```
-key SYMBOL
-chr1:122746558:/A gene1
-chr3:237485948:/C gene2
-chr14:9473625647:/G`gene3
-chr19:753454658:/T  gene4
-```
-#### 6) Run burden test and generate QQplot
+#### 6) Create a list of all variants and genes
+Create file with alleles and genes annotations(https://github.com/SilviaBuonaiuto/burdenTest/blob/main/test/annotated_genes.tsv)
+
+#### 7) Run burden test and generate QQplot
 The script [burdenChisq.R](https://github.com/SilviaBuonaiuto/burdenTest/tree/main/script) organizes count files, run the actual burden test and generate a QQplot. Use the command line:
 ```
-Rscript burdenChisq.R casesCountfile.tsv controlsCounfile.tsv genesfile.tsv numberofCases numberofControls
+Rscript burdenChisq.R qualifying_variants.idv.counts control_samples.counts annotated_genes.tsv numberofCases numberofControls
 
-casesCountfile.tsv = file containing variants and their counts for each individual (cases)
-controlCountfile.tsv = file containing variants and their counts for each individual (controls)
-genesfile.tsv = file containing the list of variants and the name of the gene in wich the variants are
-numberofCases = number of the cases
-numberofControls = number of controls
+numberofCases = number of the cases samples
+numberofControls = number of controls samples
 ```

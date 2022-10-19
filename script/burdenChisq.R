@@ -20,7 +20,7 @@ numberControls = as.numeric(args[5])
 # ca1Hom --> count of cases with at least one homozygous qualifying varinat in the gene
 # co1Hom --> count of controls with at least one homozygous qualifying variant in the gene 
 
-caseHet<-genes %>% unite(key, c("position", "allele"), sep = ":/") %>% merge(cases, by = "key") %>% select(SYMBOL, ID) %>% distinct() %>%  group_by(SYMBOL) %>% tally() %>% rename(ca1Het = n)
+caseHet<-genes %>% unite(key, c("position", "allele"), sep = ":/") %>% merge(cases, by = "key")  %>% select(SYMBOL, ID) %>% distinct() %>%  group_by(SYMBOL) %>% tally() %>% rename(ca1Het = n)
 caseHom<-genes %>% unite(key, c("position", "allele"), sep = ":/") %>% merge(cases, by = "key") %>% filter(ALTcount == 2) %>% select(SYMBOL, ID) %>% distinct() %>%  group_by(SYMBOL) %>% tally() %>% rename(ca1Hom = n)
 
 controlLHet<-genes %>% unite(key, c("position", "allele"), sep = ":/") %>% merge(controls, by = "key") %>% select(SYMBOL, ID) %>% distinct() %>%  group_by(SYMBOL) %>% tally() %>% rename(co1Het = n)
